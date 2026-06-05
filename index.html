@@ -120,8 +120,9 @@
     </div>
 
     <div class="glass-card static-card live-usdt-card">
-        <div class="static-title">USDT (Compounding @ 10%/yr)</div>
-        <div class="static-value" id="usdt-val" style="color: #2dd4bf; font-size: 2.2rem; margin-top: 10px;"><span class="rupee">&#8377;</span>0.00000000</div>
+        <div class="static-title">USDT Quantity & Value (Live)</div>
+        <div class="static-value" id="usdt-qty" style="color: #2dd4bf; font-size: 1.5rem;">0.00000000 USDT</div>
+        <div class="static-value" id="usdt-val" style="color: #2dd4bf; font-size: 2.2rem; margin-top: 5px;"><span class="rupee">&#8377;</span>0.00000000</div>
     </div>
 </div>
 
@@ -131,9 +132,8 @@
     const annualGrowthRate = 0.10;
     const secondsInYear = 31536000;
     const startTime = Date.now();
-    let exchangeRateINR = 94.96; // Default fallback
+    let exchangeRateINR = 94.96;
 
-    // Fetch live rate from Frankfurter
     async function fetchLiveRate() {
         try {
             const response = await fetch('https://api.frankfurter.app/latest?from=USD&to=INR');
@@ -144,10 +144,17 @@
     fetchLiveRate();
 
     function updateTicker() {
-        const elapsedYears = (Date.now() - startTime) / (secondsInYear * 1000);
+        const elapsedSeconds = (Date.now() - startTime) / 1000;
+        const elapsedYears = elapsedSeconds / secondsInYear;
+        
+        // Compound the quantity
         const currentUSDTQuantity = initialUSDTQuantity * Math.exp(annualGrowthRate * elapsedYears);
+        
+        // Value = Quantity * Live Rate
         const currentUSDTValueINR = currentUSDTQuantity * exchangeRateINR;
         
+        // Update Displays
+        document.getElementById('usdt-qty').innerText = currentUSDTQuantity.toFixed(8) + " USDT";
         document.getElementById('usdt-val').innerHTML = '<span class="rupee">&#8377;</span>' + currentUSDTValueINR.toFixed(8);
         document.getElementById('total-val').innerHTML = '<span class="rupee">&#8377;</span>' + (staticTotal + currentUSDTValueINR).toFixed(8);
         
