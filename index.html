@@ -146,6 +146,13 @@
         vertical-align: middle;
     }
 
+    .rate-indicator {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin-top: 15px;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
     @keyframes pulse {
         0% { transform: scale(0.9); opacity: 0.4; box-shadow: 0 0 8px #2dd4bf; }
         50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 16px #2dd4bf; }
@@ -185,7 +192,8 @@
 
     <div class="glass-card static-card live-usdt-card">
         <div class="static-title"><span class="live-indicator"></span>USDT (Compounding @ 10%/yr)</div>
-        <div class="static-value" id="usdt-val" style="color: #2dd4bf; font-size: 2.4rem; margin-top: 10px;"><span class="rupee">&#8377;</span>190.00000000</div>
+        <div class="static-value" id="usdt-val" style="color: #2dd4bf; font-size: 2.4rem; margin-top: 10px;">Loading...</div>
+        <div class="rate-indicator" id="rate-display">Live USD/INR Rate: Fetching...</div>
     </div>
 </div>
 
@@ -236,14 +244,33 @@
     const staticTotal = equity + gold + cash;
     
     const initialUSDTQuantity = 2;
-    const exchangeRateINR = 95.00;
-    const initialUSDTValueINR = initialUSDTQuantity * exchangeRateINR;
+    
+    // We set a fallback rate just in case the internet disconnects
+    let exchangeRateINR = 95.00; 
     
     const annualGrowthRate = 0.10;
     const secondsInYear = 31536000;
-
-    // The Universal Hardcoded Timestamp. Change this to your exact starting date and time.
     const startTime = new Date("2026-06-01T00:00:00Z").getTime();
+
+    // --- NEW: FETCH LIVE EXCHANGE RATE ---
+    async function fetchLiveRate() {
+        try {
+            // Pings a free, public currency database
+            const response = await fetch('https://open.er-api.com/v6/latest/USD');
+            const data = await response.json();
+            
+            if (data && data.rates && data.rates.INR) {
+                exchangeRateINR = data.rates.INR;
+                document.getElementById('rate-display').innerText = `Live USD/INR Rate: ₹${exchangeRateINR.toFixed(2)}`;
+            }
+        } catch (error) {
+            console.error("Could not fetch live rate, using fallback.");
+            document.getElementById('rate-display').innerText = `Offline Mode Rate: ₹${exchangeRateINR.toFixed(2)}`;
+        }
+    }
+
+    // Run the fetch function immediately when the page loads
+    fetchLiveRate();
 
     function updateDashboard() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -254,11 +281,11 @@
 
         const now = Date.now();
         const elapsedSeconds = (now - startTime) / 1000;
-        
-        // Prevent negative compounding if the start date is set in the future
         const validElapsedSeconds = Math.max(0, elapsedSeconds);
         const elapsedYears = validElapsedSeconds / secondsInYear;
         
+        // Calculate current value using the LIVE fetched exchange rate
+        const initialUSDTValueINR = initialUSDTQuantity * exchangeRateINR;
         const compoundedUSDTValueINR = initialUSDTValueINR * Math.exp(annualGrowthRate * elapsedYears);
         const totalNetWorth = staticTotal + compoundedUSDTValueINR;
         
@@ -269,6 +296,9 @@
     }
 
     updateDashboard();
+    
+    // Optional: Refresh the exchange rate automatically every 1 hour (3600000 ms)
+    setInterval(fetchLiveRate, 3600000);
 </script>
 
 </body>
