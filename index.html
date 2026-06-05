@@ -242,14 +242,8 @@
     const annualGrowthRate = 0.10;
     const secondsInYear = 31536000;
 
-    let startTime = localStorage.getItem('myInvestmentStartTime');
-
-    if (!startTime) {
-        startTime = Date.now();
-        localStorage.setItem('myInvestmentStartTime', startTime);
-    } else {
-        startTime = parseInt(startTime);
-    }
+    // The Universal Hardcoded Timestamp. Change this to your exact starting date and time.
+    const startTime = new Date("2026-06-01T00:00:00Z").getTime();
 
     function updateDashboard() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -260,7 +254,10 @@
 
         const now = Date.now();
         const elapsedSeconds = (now - startTime) / 1000;
-        const elapsedYears = elapsedSeconds / secondsInYear;
+        
+        // Prevent negative compounding if the start date is set in the future
+        const validElapsedSeconds = Math.max(0, elapsedSeconds);
+        const elapsedYears = validElapsedSeconds / secondsInYear;
         
         const compoundedUSDTValueINR = initialUSDTValueINR * Math.exp(annualGrowthRate * elapsedYears);
         const totalNetWorth = staticTotal + compoundedUSDTValueINR;
