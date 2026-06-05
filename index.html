@@ -242,7 +242,14 @@
     const annualGrowthRate = 0.10;
     const secondsInYear = 31536000;
 
-    const startTime = Date.now();
+    let startTime = localStorage.getItem('myInvestmentStartTime');
+
+    if (!startTime) {
+        startTime = Date.now();
+        localStorage.setItem('myInvestmentStartTime', startTime);
+    } else {
+        startTime = parseInt(startTime);
+    }
 
     function updateDashboard() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
