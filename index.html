@@ -25,7 +25,6 @@
         overflow: hidden;
     }
 
-    /* Animated background grid */
     body::before {
         content: '';
         position: absolute;
@@ -89,7 +88,6 @@
         margin-bottom: 10px;
     }
 
-    /* Monospace font for the ticking numbers so they don't jump around */
     .ticking-value {
         font-family: 'JetBrains Mono', monospace;
         font-size: 4rem;
@@ -98,6 +96,10 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         text-shadow: 0 0 40px rgba(56, 189, 248, 0.3);
+    }
+
+    .rupee {
+        font-family: 'Segoe UI', Arial, sans-serif;
     }
 
     .grid-3 {
@@ -162,70 +164,61 @@
 <div class="dashboard">
     <div class="glass-card main-display">
         <h1>Total Net Worth (Live)</h1>
-        <div class="ticking-value" id="total-val">₹0.00000000</div>
+        <div class="ticking-value" id="total-val"><span class="rupee">&#8377;</span>0.00000000</div>
     </div>
 
     <div class="grid-3">
         <div class="static-card">
-            <div class="static-title">Equity (Constant)</div>
-            <div class="static-value">₹3,912.41</div>
+            <div class="static-title">Equity</div>
+            <div class="static-value"><span class="rupee">&#8377;</span>3,912.41</div>
         </div>
         <div class="static-card">
-            <div class="static-title">Gold (Constant)</div>
-            <div class="static-value">₹389.74</div>
+            <div class="static-title">Gold</div>
+            <div class="static-value"><span class="rupee">&#8377;</span>389.74</div>
         </div>
         <div class="static-card">
-            <div class="static-title">Cash (Constant)</div>
-            <div class="static-value">₹110.00</div>
+            <div class="static-title">Cash</div>
+            <div class="static-value"><span class="rupee">&#8377;</span>110.00</div>
         </div>
     </div>
 
     <div class="glass-card static-card live-usdt-card">
         <div class="static-title"><span class="live-indicator"></span>USDT (Compounding @ 10%/yr)</div>
-        <div class="static-value" id="usdt-val" style="color: #2dd4bf; font-size: 2.2rem; margin-top: 10px;">₹190.00000000</div>
+        <div class="static-value" id="usdt-val" style="color: #2dd4bf; font-size: 2.2rem; margin-top: 10px;"><span class="rupee">&#8377;</span>190.00000000</div>
     </div>
 </div>
 
 <script>
-    // --- PORTFOLIO CONSTANTS ---
     const equity = 3912.41;
     const gold = 389.74;
     const cash = 110.00;
-    const staticTotal = equity + gold + cash; // ₹4,412.15
+    const staticTotal = equity + gold + cash;
     
     const initialUSDTQuantity = 2;
-    const exchangeRateINR = 95.00; // 1 USDT = 95 INR
-    const initialUSDTValueINR = initialUSDTQuantity * exchangeRateINR; // ₹190.00
+    const exchangeRateINR = 95.00;
+    const initialUSDTValueINR = initialUSDTQuantity * exchangeRateINR;
     
-    const annualGrowthRate = 0.10; // 10%
-    const secondsInYear = 31536000; // 365 * 24 * 60 * 60
+    const annualGrowthRate = 0.10;
+    const secondsInYear = 31536000;
 
-    // Capture the exact millisecond the user opens the page
     const startTime = Date.now();
 
     function updateTicker() {
-        // Calculate how many seconds have passed since the page loaded
         const now = Date.now();
         const elapsedSeconds = (now - startTime) / 1000;
         
-        // Convert elapsed seconds to a fraction of a year
         const elapsedYears = elapsedSeconds / secondsInYear;
         
-        // Continuous compounding formula: Future Value = Principal * e^(rate * time)
         const compoundedUSDTValueINR = initialUSDTValueINR * Math.exp(annualGrowthRate * elapsedYears);
         
-        // Add live USDT value to the static assets
         const totalNetWorth = staticTotal + compoundedUSDTValueINR;
         
-        // Update the HTML (using 8 decimal places so you can see it move every frame)
-        document.getElementById('usdt-val').innerText = '₹' + compoundedUSDTValueINR.toFixed(8);
-        document.getElementById('total-val').innerText = '₹' + totalNetWorth.toFixed(8);
+        document.getElementById('usdt-val').innerHTML = '<span class="rupee">&#8377;</span>' + compoundedUSDTValueINR.toFixed(8);
+        document.getElementById('total-val').innerHTML = '<span class="rupee">&#8377;</span>' + totalNetWorth.toFixed(8);
         
-        // Ask the browser to run this function again on the next animation frame (approx 60 times a second)
         requestAnimationFrame(updateTicker);
     }
 
-    // Start the loop
     updateTicker();
 </script>
 
