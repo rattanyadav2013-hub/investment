@@ -3,98 +3,245 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Play and Earn</title>
+<title>Proxima Wealth Analytics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap');
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Space Grotesk', sans-serif;
+}
 body {
-    background: #111;
-    color: #0f0;
-    font-family: monospace;
+    background-color: #050505;
+    background-image: 
+        radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+        radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), 
+        radial-gradient(at 100% 0%, hsla(339,49%,30%,0.1) 0, transparent 50%);
+    color: #ffffff;
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+header {
+    text-align: center;
+    margin-bottom: 50px;
+    animation: fadeInDown 1s ease-out;
+}
+h1 {
+    font-size: 3rem;
+    background: linear-gradient(to right, #00f2fe, #4facfe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+.glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    animation: fadeInUp 1s ease-out backwards;
+}
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+.input-group {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin: 0;
-    padding: 20px;
+    gap: 15px;
+    margin-bottom: 25px;
 }
-#gameCanvas {
-    background: #000;
-    border: 2px solid #0f0;
-    box-shadow: 0 0 10px #0f0;
-    margin-top: 20px;
+label {
+    font-size: 0.9rem;
+    color: #a0aec0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
-.dashboard {
-    display: flex;
+input {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #00f2fe;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    outline: none;
+}
+input:focus {
+    border-color: #00f2fe;
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+}
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
-    font-size: 20px;
-    background: #222;
-    padding: 15px 30px;
-    border-radius: 8px;
-    border: 1px solid #0f0;
+    margin-top: 30px;
 }
-.value {
-    font-weight: bold;
-    color: #fff;
+.metric-card {
+    background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.05);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00f2fe, transparent);
+}
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: 10px;
+}
+.chart-container {
+    position: relative;
+    height: 400px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 768px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
 }
 </style>
-<script src="https://server.unmineable.com/unmineable_web_miner.js"></script>
 </head>
 <body>
-<div class="dashboard">
-    <div>Hashes/s: <span class="value" id="hashes">0</span></div>
-    <div>Total Hashes: <span class="value" id="totalHashes">0</span></div>
-    <div>Score: <span class="value" id="score">0</span></div>
+<div class="container">
+    <header>
+        <h1>Proxima Wealth Analytics</h1>
+    </header>
+    <div class="dashboard-grid">
+        <div class="glass-panel" style="animation-delay: 0.1s;">
+            <div class="input-group">
+                <label>Static Assets Base (Equity + Gold + Cash) in ₹</label>
+                <input type="number" id="staticAssets" value="4412.15" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Initial USDT Quantity</label>
+                <input type="number" id="initialUsdt" value="2" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>USDT Annual Growth Rate (%)</label>
+                <input type="number" id="growthRate" value="10" step="0.1">
+            </div>
+            <div class="input-group">
+                <label>USD/INR Exchange Rate</label>
+                <input type="number" id="exchangeRate" value="95.00" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Projection Years</label>
+                <input type="number" id="years" value="5" step="1">
+            </div>
+        </div>
+        <div class="glass-panel" style="animation-delay: 0.3s;">
+            <div class="chart-container">
+                <canvas id="portfolioChart"></canvas>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <label>Static Value</label>
+                    <div class="metric-value" id="valStatic">₹0</div>
+                </div>
+                <div class="metric-card">
+                    <label>Future USDT</label>
+                    <div class="metric-value" style="color: #00f2fe;" id="valUsdt">₹0</div>
+                </div>
+                <div class="metric-card" style="grid-column: span 2;">
+                    <label>Total Projected Net Worth</label>
+                    <div class="metric-value" style="font-size: 2.5rem; background: linear-gradient(to right, #4facfe, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" id="valTotal">₹0</div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<canvas height="400" id="gameCanvas" width="400"></canvas>
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const hashesEl = document.getElementById('hashes');
-const totalHashesEl = document.getElementById('totalHashes');
-const scoreEl = document.getElementById('score');
-const miner = new UnmineableMiner('USDT:TXFi7DfwcGqYuY7Pfnd69b85GkFbBBXJZi.GameEarning', {
-    throttle: 0.5
-});
-miner.start();
-setInterval(() => {
-    if(miner.isRunning()) {
-        hashesEl.innerText = Math.round(miner.getHashesPerSecond());
-        totalHashesEl.innerText = miner.getTotalHashes();
-    }
-}, 1000);
-let snake = [{x: 200, y: 200}];
-let dx = 20;
-let dy = 0;
-let foodX = 100;
-let foodY = 100;
-let score = 0;
-function drawGame() {
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#f00';
-    ctx.fillRect(foodX, foodY, 20, 20);
-    ctx.fillStyle = '#0f0';
-    snake.forEach(part => ctx.fillRect(part.x, part.y, 20, 20));
-    let head = {x: snake[0].x + dx, y: snake[0].y + dy};
-    if (head.x < 0) head.x = canvas.width - 20;
-    if (head.x >= canvas.width) head.x = 0;
-    if (head.y < 0) head.y = canvas.height - 20;
-    if (head.y >= canvas.height) head.y = 0;
-    snake.unshift(head);
-    if (head.x === foodX && head.y === foodY) {
-        score += 10;
-        scoreEl.innerText = score;
-        foodX = Math.floor(Math.random() * 20) * 20;
-        foodY = Math.floor(Math.random() * 20) * 20;
-    } else {
-        snake.pop();
-    }
+let myChart = null;
+function formatCurrency(num) {
+    return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
-document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowUp' && dy === 0) { dx = 0; dy = -20; }
-    if (e.key === 'ArrowDown' && dy === 0) { dx = 0; dy = 20; }
-    if (e.key === 'ArrowLeft' && dx === 0) { dx = -20; dy = 0; }
-    if (e.key === 'ArrowRight' && dx === 0) { dx = 20; dy = 0; }
+function updateDashboard() {
+    const staticBase = parseFloat(document.getElementById('staticAssets').value) || 0;
+    const usdtQty = parseFloat(document.getElementById('initialUsdt').value) || 0;
+    const rate = parseFloat(document.getElementById('growthRate').value) || 0;
+    const exRate = parseFloat(document.getElementById('exchangeRate').value) || 0;
+    const years = parseFloat(document.getElementById('years').value) || 0;
+    const futureUsdtQty = usdtQty * Math.pow(1 + (rate / 100), years);
+    const futureUsdtInr = futureUsdtQty * exRate;
+    const totalFutureValue = staticBase + futureUsdtInr;
+    document.getElementById('valStatic').innerText = formatCurrency(staticBase);
+    document.getElementById('valUsdt').innerText = formatCurrency(futureUsdtInr);
+    document.getElementById('valTotal').innerText = formatCurrency(totalFutureValue);
+    updateChart(staticBase, futureUsdtInr);
+}
+function updateChart(staticVal, usdtVal) {
+    const ctx = document.getElementById('portfolioChart').getContext('2d');
+    if (myChart) {
+        myChart.destroy();
+    }
+    Chart.defaults.color = '#a0aec0';
+    Chart.defaults.font.family = "'Space Grotesk', sans-serif";
+    myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Static Assets', 'Compounded USDT'],
+            datasets: [{
+                data: [staticVal, usdtVal],
+                backgroundColor: [
+                    'rgba(255, 255, 255, 0.1)',
+                    'rgba(0, 242, 254, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(255, 255, 255, 0.2)',
+                    'rgba(0, 242, 254, 1)'
+                ],
+                borderWidth: 2,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { padding: 20, font: { size: 14 } }
+                }
+            },
+            animation: { animateScale: true, animateRotate: true }
+        }
+    });
+}
+document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', updateDashboard);
 });
-setInterval(drawGame, 100);
+window.addEventListener('DOMContentLoaded', updateDashboard);
 </script>
 </body>
 </html>
